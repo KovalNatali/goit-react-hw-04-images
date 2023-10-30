@@ -73,10 +73,14 @@ export const App = () => {
     <div className="gallary">
      <SearchBar onSubmit = {handalSubmit} />
      {loading && <Loader />}
+     {!error && (
+        <>
      <ImageGallery
           images={images}
           onOpenModal={onOpenModal}
         />
+           </>
+      )}
      {page < Math.ceil(totalHits / 12) ? (
     <ButtonLoad onClick = {handalLoadMore}/>
         ) : null}

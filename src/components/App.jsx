@@ -1,4 +1,4 @@
-import { Component } from "react"
+import { useState, useEffect } from "react"
 import toast, { Toaster } from 'react-hot-toast';
 import { SearchBar } from "./Searchbar/Searchbar";
 import {ButtonLoad } from "./ButtonLoad/ButtonLoad";
@@ -8,103 +8,88 @@ import { Loader } from "./Loader/Loader";
 import { Modal } from "./Modal/Modal";
 
 
-export class App extends Component {
-  state = {
-     query: '',
-     images: [],
-     page: 1,
-     error: false,
-     loading: false,
-     totalHits: 0,
-     selectedImage: '',
-     isModal: false,
-  };
 
+export const App = () => {
+  const [query, setQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [totalHits, setTotalHits] = useState(0);
+  const [selectedImage, setSelectedImage] = useState('');
+  const [isModal, setIsModal] = useState(false);
 
-  handalSubmit = evt => {
+ const handalSubmit = evt => {
     evt.preventDefault();
-    this.setState({
-    query: `${Date.now()}/${evt.target.elements.query.value}`,
-      images: [],
-      page:1,
-      loading:false,
-      error: false,
-    })
-  }
-
-  handalLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-
+    setQuery(`${Date.now()}/${evt.target.elements.query.value}`);
+      setImages([]);
+      setPage(1); 
     };
 
-    handleClickImage = e => {
-      e.preventDefault();
-      console.log(e.target.src);
+ const handalLoadMore = () => {
+  setPage(prevPage => (prevPage + 1))
     };
 
-    onOpenModal = imageURL => {
-      this.setState({ isModal: true, selectedImage: imageURL });
+ const onOpenModal = imageURL => {
+     
+      setIsModal(true);
+      setSelectedImage(imageURL);
     };
   
-    onCloseModal = () => {
-      this.setState({ isModal: false, selectedImage: '' });
+   const onCloseModal = () => {
+
+      setIsModal(false);
+      setSelectedImage('')
     };
 
- async componentDidUpdate (prevProps, prevState) {
-    if (prevState.query !== this.state.query ||
-      prevState.page !== this.state.page ) {
-       
+    useEffect (() => {
+      if (!query) {
+        return;
+      }
+       async function fetchData () {
         try {
-          this.setState({loading: true, error: false })
-          const images = await fetchImage(this.state.query.split('/')[1], this.state.page);
+          setLoading(true);
+          setError(false);
+          const images = await fetchImage(query.split('/')[1],page);
 
           if (images.hits.length === 0) {
            toast.error('Nothing was found for your image request');
           }
-        
-        if (prevState.query === this.state.query) {
-          this.setState({
-            images: [...prevState.images, ...images.hits],
-            totalHits: images.totalHits,
-          });
-        } else {
-          this.setState({ images: images.hits, totalHits: images.totalHits });
-        }
+        setImages(prevImage => [...prevImage, ...images.hits]);
+        setTotalHits(images.totalHits);
+      
     } catch (error) {
           toast.error('Oops! Try to reload the page.');
-          this.setState({ error: true})
+          setError(true);
         } finally {
-          this.setState({ loading: false });
+          setLoading(false)
         }
-     };
+      
     }
+    fetchData();
+    },[query,page] )
 
-
- 
-  render() {
  return (
     <div className="gallary">
-     <SearchBar onSubmit = {this.handalSubmit} />
-     {this.state.loading && <Loader />}
+     <SearchBar onSubmit = {handalSubmit} />
+     {loading && <Loader />}
      <ImageGallery
-          images={this.state.images}
-          onOpenModal={this.onOpenModal}
+          images={images}
+          onOpenModal={onOpenModal}
         />
-     {this.state.page < Math.ceil(this.state.totalHits / 12) ? (
-    <ButtonLoad onClick = {this.handalLoadMore}/>
+     {page < Math.ceil(totalHits / 12) ? (
+    <ButtonLoad onClick = {handalLoadMore}/>
         ) : null}
-          {this.state.isModal && (
+          {isModal && (
           <Modal
-          largeImage={this.state.selectedImage}
-          onClick={this.onCloseModal}
-          onCloseModal={this.onCloseModal}
+          largeImage={selectedImage}
+          onClick={onCloseModal}
+          onCloseModal={onCloseModal}
           />
         )}
        <Toaster position="top-right"/>
      </div>
   );
-  };
+  
  
 };

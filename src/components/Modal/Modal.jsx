@@ -1,42 +1,32 @@
-
-import {ModalStyled,Overlay} from './Modal.styled.jsx';
+import { ModalStyled, Overlay } from './Modal.styled.jsx';
 import { useEffect } from 'react';
 
-export function Modal ({largeImage,onClick,onCloseModal}) {
-    
-useEffect(() => {
-const handleKeyDown = (e) => {
+export function Modal({ largeImage, onClick, onCloseModal }) {
+  useEffect(() => {
+    const handleKeyDown = e => {
       if (e.code === 'Escape') {
-          onCloseModal()
+        onCloseModal();
       }
-    
-  };
+    };
 
-      window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
 
- return() => {
+    return () => {
       window.removeEventListener('keydown', handleKeyDown);
- };
-  },[onCloseModal])
+    };
+  }, [onCloseModal]);
 
- 
-
- const handleOverlayClick = (e) => {
-      if (e.target === e.currentTarget) {
-          onCloseModal();
-      }
-     
+  const handleOverlayClick = e => {
+    if (e.target === e.currentTarget) {
+      onCloseModal();
+    }
   };
 
-
-    
-      return (
-      <Overlay onClick={handleOverlayClick}>
-          <ModalStyled>
-          <img  src={largeImage}
-            alt="" onClick={onClick}  />
-          </ModalStyled>
-      </Overlay>
-      );
-  
+  return (
+    <Overlay onClick={handleOverlayClick}>
+      <ModalStyled>
+        <img src={largeImage} alt="" onClick={onClick} />
+      </ModalStyled>
+    </Overlay>
+  );
 }
